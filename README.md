@@ -14,5 +14,3 @@ The KeyFormatter class handles string to KeyCode casting, utilising Regex format
 
 The InputAxis class contains input information in an axial format, using positive and negative key-bindings. UnityEvents are used within this class to link set-up inputs to actions within the inspector, enabling code layering and modularity. Future plans aim to make this further customisable, allowing users to set the number of inputs and the values they will output. 
 
-## How it works.
-This input handler 
