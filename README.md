@@ -17,6 +17,6 @@ The InputAxis class contains input information in an axial format, using positiv
 ## Installing
 To install this package:
 - Download the <code>InputHandler</code> folder from the main repository and save it somewhere in your <code>Assets</code> folder.
-- Add the <code>InputHandler</code> script to a gameobject within the scene.
+- Add the <code>InputHandler</code> script to a <code>GameObject</code> within the scene.
 - Set up the desired controls and their connected functionality.
 - Hit play!
