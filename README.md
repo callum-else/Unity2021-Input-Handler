@@ -2,7 +2,7 @@
 A custom input handler created in C# for the Unity Game Engine.
 
 ## Description
-For this project, I wanted to create a useful tool that I could re-use very easily. As such, I landed upon the idea of an easily deployable Input Layer, avoiding messy class structures and hard-to-follow cross-module dependencies. 
+For this project, I wanted to create an easily reusable and useful tool that I could implement into future projects. With these prerequisites I decided to build an easily deployable Input Layer, avoiding messy class structures and hard-to-follow cross-module dependencies.
 
 The core of this project comes from 3 main scripts: InputHandler, InputHandlerEditor and InputComponents.
 
