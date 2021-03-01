@@ -15,7 +15,7 @@ public class InputEvent : UnityEvent<float> { }
 
 #endregion
 
-#region Axis Class
+#region InputGroup Class
 
 /// <summary>
 ///     Custom class to store information about axial key-bindings.
@@ -25,79 +25,26 @@ public class InputEvent : UnityEvent<float> { }
 ///     </para>
 /// </summary>
 [Serializable]
-public class InputAxis
+public class InputGroup
 {
+
+    // ===== Public Variables. =====
 
     /// <summary> 
     ///     A given name for the current input axis. 
     ///     Mainly for presentation purposes. 
     /// </summary>
+    [Tooltip("The name of this input group.")]
     public string name;
 
     // Using header to create section seperation in the Unity inspector.
     [Header("Key Options")]
 
-    // ===== Variables handling positive key. =====
-
-    /// <summary> Internal storage for the string name of the positive input KeyCode. </summary>
-    [SerializeField]
-    private string _positiveKey = "";
-
-    /// <summary>
-    ///     Public getter and Setter interface for _positiveKey.
-    ///     Converts input string values to usable KeyCode types.
-    /// </summary>
-    public string positiveKey
-    {
-        get { return _positiveKey; }
-        set
-        {
-            positiveKeyCode = TryKeyCodeConversion(value);
-            _positiveKey = value;
-        }
-    }
-
-    // Hiding the variable from being seen in the inspector.
-    // Maintains public accessbility modifier.
-    /// <summary>
-    ///     Storage for the KeyCode conversion of the positive key string.
-    ///     Can be used to interface with the Unity input system.
-    /// </summary>
-    //[HideInInspector]
-    public KeyCode positiveKeyCode { get; private set; }
-
-    private bool usePositive = true;
-
-    // ===== Variables handling negative key. =====
-
-    /// <summary> Internal storage for the string name of the negative input KeyCode. </summary>
-    [SerializeField]
-    private string _negativeKey = "";
-
-    /// <summary>
-    ///     Public getter and Setter interface for _negativeKey.
-    ///     Converts input string values to usable KeyCode types.
-    /// </summary>
-    public string negativeKey
-    {
-        get { return _negativeKey; }
-        set
-        {
-            negativeKeyCode = TryKeyCodeConversion(value);
-            _negativeKey = value;
-        }
-    }
-
-    /// <summary>
-    ///     Storage for the KeyCode conversion of the negative key string.
-    ///     Can be used to interface with the Unity input system.
-    /// </summary>
-    //[HideInInspector]
-    public KeyCode negativeKeyCode { get; private set; }
-
-    private bool useNegative = true;
+    public Key[] keys;
 
     // ===== Variables handling input smoothing. =====
+
+    [Header("Smoothing Options")]
 
     /// <summary>
     ///     Determines the amount of smoothing for lerping between directional input values.
@@ -105,33 +52,247 @@ public class InputAxis
     /// </summary>
     // Using range to limit size of step between 0 and 1.
     // Also creates handy slider!
-    [Range(0, 1)]
-    public float stepSize = 0f;
+    [Range(0.0001f, 1)]
+    [Tooltip("Determines the amount of input smoothing.\nSet to 1 to disable smoothing.")]
+    public float stepSize = 0.1f;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public bool canHoldInput;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public bool isActive { 
+        get { return hasInput || currentInputValue != 0; }
+    }
+
+    // ===== Private Variables. =====
+
+    /// <summary>
+    /// 
+    /// </summary>
+    private float snapThreshold;
 
     /// <summary>
     ///     Stores the current float value of the input.
     ///     Used to apply smoothing between axis directions.
     /// </summary>
     private float currentInputValue = 0f;
-    private float rawInputValue = 0f;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    private int rawInputValue = 0;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    private bool hasInput = false;
+
+    private delegate float InputGenerator(float current, float input);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    private InputGenerator inputGenerator;
+
+    private delegate bool InputChecker(KeyCode key);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    private InputChecker inputChecker;
 
     // ===== Event Storage. =====
 
     [Header("Linked Events")]
+
     /// <summary>
     ///     UnityEvent interface allowing for passing of input float data.
     ///     Link to functions that require the use of inputs.
     /// </summary>
     public InputEvent inputEvent;
 
-    private delegate float InputGenerator(float input);
-    private InputGenerator inputGenerator;
+    // ===== Functions. =====
+
+    /// <summary>
+    ///     Performs conversion of each stored string key in the current instance to KeyCode.
+    ///     Used for in-editor changes.
+    /// </summary>
+    public void UpdateSettings()
+    {
+        // Determining the function used to generate an output value.
+
+        inputGenerator =
+            stepSize == 1 ?
+                (InputGenerator)GetSnappedInput
+                : (InputGenerator)GetLerpedInput;
+
+        //
+
+        inputChecker =
+            canHoldInput ?
+                (InputChecker)Input.GetKey
+                : (InputChecker)Input.GetKeyDown;
+
+        //
+
+        snapThreshold = stepSize * 0.5f;
+
+        // Resetting the positive and negative key values to activate the 
+        // setter string>KeyCode conversion.
+
+        foreach (Key k in keys)
+            k.UpdateKey();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public bool TryGetInput()
+    {
+        // 
+
+        int output = 0;
+        bool input = false;
+
+        // 
+
+        foreach (Key k in keys)
+            if (k.useKey && inputChecker(k.keyCode))
+            {
+                input = true;
+                output += (int)k.value;
+            }
+
+        // 
+
+        hasInput = input;
+        rawInputValue = output;
+
+        // 
+
+        return hasInput;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public void HandleInput()
+    {
+        // 
+        
+        TryGetInput();
+
+        // 
+        
+        inputEvent?.Invoke(
+            inputGenerator(
+                currentInputValue, 
+                rawInputValue
+            )
+        );
+    }
+
+    // ===== Input Generators =====
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="current"></param>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    private float GetLerpedInput(float current, float input)
+    {
+        // 
+
+        float inputLerp = Mathf.Lerp(
+            current,
+            input,
+            stepSize
+        );
+
+        // 
+
+        if (Mathf.Abs(inputLerp) < snapThreshold)
+            currentInputValue = 0;
+        else
+            currentInputValue = inputLerp;
+
+        // 
+
+        return currentInputValue;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="current"></param>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    private float GetSnappedInput(float current, float input)
+    {
+        // 
+
+        return input;
+    }
+}
+
+#endregion
+
+[Serializable]
+public class Key
+{
+    // ===== Variables. =====
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public string name;
+
+    /// <summary> Internal storage for the string name of the negative input KeyCode. </summary>
+    [SerializeField]
+    [Tooltip("The name of a KeyCode.")]
+    private string _key = "";
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public string key
+    {
+        get { return _key; }
+        set
+        {
+            keyCode = TryKeyCodeConversion(value);
+            _key = value;
+        }
+    }
+
+    /// <summary>
+    ///     Storage for the KeyCode conversion of the key string.
+    ///     Can be used to interface with the Unity input system.
+    /// </summary>
+    public KeyCode keyCode { get; private set; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public bool useKey { get; private set; }
+
+    [Tooltip("The output value returned by the key.")]
+    /// <summary>
+    /// 
+    /// </summary>
+    public Output value = Output.Positive;
 
     // ===== Functions. =====
 
     /// <summary>
     ///     Attempts to convert a given string value to a KeyCode.
-    ///     Returns a warning if unsuccessful, stating the warning source.
+    ///     Returns a warning if unsuccessful.
     /// </summary>
     /// <param name="keyCodeString">
     ///     Value to be converted into KeyCode.
@@ -143,76 +304,40 @@ public class InputAxis
     private KeyCode TryKeyCodeConversion(string keyCodeString)
     {
         // Returning the result of parsing from strign to KeyCode if successful.
+
         if (KeyFormatter.TryParse(keyCodeString, out KeyCode result))
             return result;
+
         // Throwing a warning to the Unity console when parsing fails.
+
         else
             Debug.LogWarning(
                 $"Warning in {name} input settings:\n" +
                 $"Could not convert '{keyCodeString}' to KeyCode. Defaulting to None."
             );
+
         // If end of function reached, parse has failed.
         // Return an empty KeyCode.
+
         return KeyCode.None;
     }
 
     /// <summary>
-    ///     Performs conversion of each stored string key in the current instance to KeyCode.
-    ///     Used for in-editor changes.
+    /// 
     /// </summary>
-    public void UpdateSettings()
+    public void UpdateKey()
     {
-        positiveKey = _positiveKey;
-        usePositive = positiveKeyCode != KeyCode.None;
-
-        negativeKey = _negativeKey;
-        useNegative = negativeKeyCode != KeyCode.None;
-
-        inputGenerator = 
-            stepSize == 1 ? 
-                (InputGenerator)GetSnappedInput
-                : (InputGenerator)GetLerpedInput;
-    }
-
-    public bool TryGetInput(out float input)
-    {
-        input = 
-            (usePositive && Input.GetKey(positiveKeyCode)) ? 1 
-            : (useNegative && Input.GetKey(negativeKeyCode)) ? -1 : 0;
-
-        return input != 0;
-    }
-
-    public void CheckInput()
-    {
-        if (TryGetInput(out rawInputValue) || currentInputValue != 0)
-            inputEvent?.Invoke(inputGenerator(rawInputValue));
-    }
-
-    private float GetLerpedInput(float input)
-    {
-        float inputLerp = Mathf.Lerp(
-            currentInputValue,
-            input,
-            stepSize
-        );
-
-        if (Mathf.Abs(inputLerp) < 0.1f)
-            currentInputValue = 0;
-        else
-            currentInputValue = inputLerp;
-
-        return currentInputValue;
-    }
-
-    private float GetSnappedInput(float input)
-    {
-        currentInputValue = input;
-        return currentInputValue;
+        key = _key;
+        useKey = keyCode != KeyCode.None;
     }
 }
 
-#endregion
+[Serializable]
+public enum Output
+{
+    Positive = 1,
+    Negative = -1
+}
 
 #region KeyFormatter Class
 

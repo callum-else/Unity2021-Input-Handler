@@ -11,10 +11,11 @@ public class InputHandlerEditor : Editor
     {
         DrawDefaultInspector();
 
-        InputHandler ipHandler = (InputHandler)target;
-        if (GUILayout.Button("Update Input Settings"))
+        if (Application.isPlaying)
         {
-            ipHandler.UpdateInputs();
+            InputHandler ipHandler = (InputHandler)target;
+            if (GUILayout.Button("Update Input Settings"))
+                ipHandler.UpdateInputs();
         }
     }
 }
