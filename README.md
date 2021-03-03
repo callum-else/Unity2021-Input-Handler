@@ -6,7 +6,7 @@ For this project, I wanted to create an easily reusable and useful tool that I c
 
 The core of this project comes from 3 main scripts: InputHandler, InputHandlerEditor and InputComponents.
 
-The InputHandler script, and its Editor counterpart, act as an interface between Unity and the core InputComponents, housing all Unity inspector and MonoBehaviour functionality.
+The InputHandler script, and its Editor counterpart, act as an interface between Unity and the core <code>InputComponents</code> objects, housing all Unity inspector and MonoBehaviour functionality.
 
 The InputComponents script stores the main bulk of the input processing, housing the InputAxis and KeyFormatter classes.
 
