@@ -71,6 +71,12 @@ The InputAxis class contains input information in an axial format, using positiv
     To do this programmatically, assigning a string value to the <code>Key.key</code> class variable will assign a new KeyCode to the <code>Key</code> object. 
   </p>
   <img src="https://user-images.githubusercontent.com/23187869/109863732-e7edff80-7c59-11eb-97d2-8e992d3244e9.gif">
+  
+  <p>
+    The demo project contains scripts for generating UI based on the inputs defined at run-time, as well as for modifying those input settings in-game. 
+  </p>
+  <img src="https://user-images.githubusercontent.com/23187869/110020308-51851100-7d21-11eb-979f-7517ad83e293.gif">
+
 </details>
   
 ## Installing
