@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class InputHandler : MonoBehaviour
 {
@@ -11,27 +12,25 @@ public class InputHandler : MonoBehaviour
     [Tooltip("Use the + and - icons to add/remove an input group.")]
     public InputGroup[] inputs;
 
+    /// <summary>
+    /// 
+    /// </summary>
+    [Tooltip("Functions to be called whenever control settings are updated.")]
+    public UnityEvent updateEvent;
+
+    /// <summary>
+    /// 
+    /// </summary>
     private List<int> activeIndexes;
 
-    // Start function called on program load.
-    // Updating inputs whenever the program starts.
+    /// <summary>
+    ///     Start function called on program load.
+    ///     Updating inputs whenever the program starts.
+    /// </summary>
     private void Start()
     {
         activeIndexes = new List<int>();
-
         UpdateInputs();
-    }
-
-    /// <summary>
-    ///     Blanket fire update for each input.
-    ///     Used in-editor to save changed made during play mode.
-    /// </summary>
-    public void UpdateInputs()
-    {
-        // Iterating over each input group to update settings.
-
-        foreach (InputGroup i in inputs)
-            i.UpdateSettings();
     }
 
     /// <summary>
@@ -55,18 +54,62 @@ public class InputHandler : MonoBehaviour
 
         // Handling active inputs.
 
-        for (int i = activeIndexes.Count - 1; i >= 0; i--) 
+        for (int i = activeIndexes.Count - 1; i >= 0; i--)
         {
             // Updating the state of the input group.
             // Invokes connected functions.
 
             inputs[activeIndexes[i]].HandleInput();
-            
+
             // Checking if input is still active after update.
             // If not, removing the index from the active list.
 
-            if(!inputs[activeIndexes[i]].isActive)
+            if (!inputs[activeIndexes[i]].isActive)
                 activeIndexes.RemoveAt(i);
         }
+    }
+
+    /// <summary>
+    ///     Blanket fire update for each input.
+    ///     Used in-editor to save changed made during play mode.
+    /// </summary>
+    public void UpdateInputs()
+    {
+        // Iterating over each input group to update settings.
+
+        foreach (InputGroup i in inputs)
+            i.UpdateSettings();
+
+        updateEvent?.Invoke();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="groupName"></param>
+    /// <param name="keyName"></param>
+    /// <param name="key"></param>
+    public void ChangeInput(string groupName, string keyName, KeyCode key)
+    {
+        foreach (InputGroup g in inputs)
+            if (g.name == groupName)
+                g.ChangeKey(keyName, key);
+
+        updateEvent?.Invoke();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="groupName"></param>
+    /// <param name="keyName"></param>
+    /// <param name="key"></param>
+    public void ChangeInput(string groupName, string keyName, string key)
+    {
+        foreach (InputGroup g in inputs)
+            if (g.name == groupName)
+                g.ChangeKey(keyName, key);
+
+        updateEvent?.Invoke();
     }
 }

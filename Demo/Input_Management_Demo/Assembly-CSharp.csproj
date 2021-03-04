@@ -56,12 +56,15 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio Tools for Unity\16.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\UI\KeyLogger.cs" />
     <Compile Include="Assets\Scripts\InputHandler\InputHandler.cs" />
     <Compile Include="Assets\Scripts\InputHandler\InputHandlerEditor.cs" />
     <Compile Include="Assets\Scripts\InputHandler\InputComponents.cs" />
-    <Compile Include="Assets\Scripts\Player\BallController.cs" />
     <Compile Include="Assets\Scripts\Camera\CameraFollow.cs" />
-    <Compile Include="Assets\Scripts\UI\KeyLogger.cs" />
+    <Compile Include="Assets\Scripts\Player\BallController.cs" />
+    <Compile Include="Assets\Scripts\InputHandler\InputEditor.cs" />
+    <Compile Include="Assets\Scripts\UI\InputUIManager.cs" />
+    <Compile Include="Assets\Scripts\UI\InputUIComponent.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

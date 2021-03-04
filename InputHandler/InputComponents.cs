@@ -40,11 +40,12 @@ public class InputGroup
     // Using header to create section seperation in the Unity inspector.
     [Header("Key Options")]
 
+    /// <summary>
+    ///     
+    /// </summary>
     public Key[] keys;
 
-    // ===== Variables handling input smoothing. =====
-
-    [Header("Smoothing Options")]
+    [Header("Input Options")]
 
     /// <summary>
     ///     Determines the amount of smoothing for lerping between directional input values.
@@ -67,6 +68,14 @@ public class InputGroup
     public bool isActive { 
         get { return hasInput || currentInputValue != 0; }
     }
+
+    [Header("Linked Events")]
+
+    /// <summary>
+    ///     UnityEvent interface allowing for passing of input float data.
+    ///     Link to functions that require the use of inputs.
+    /// </summary>
+    public InputEvent inputEvent;
 
     // ===== Private Variables. =====
 
@@ -91,6 +100,12 @@ public class InputGroup
     /// </summary>
     private bool hasInput = false;
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="current"></param>
+    /// <param name="input"></param>
+    /// <returns></returns>
     private delegate float InputGenerator(float current, float input);
 
     /// <summary>
@@ -98,6 +113,11 @@ public class InputGroup
     /// </summary>
     private InputGenerator inputGenerator;
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns></returns>
     private delegate bool InputChecker(KeyCode key);
 
     /// <summary>
@@ -105,17 +125,7 @@ public class InputGroup
     /// </summary>
     private InputChecker inputChecker;
 
-    // ===== Event Storage. =====
-
-    [Header("Linked Events")]
-
-    /// <summary>
-    ///     UnityEvent interface allowing for passing of input float data.
-    ///     Link to functions that require the use of inputs.
-    /// </summary>
-    public InputEvent inputEvent;
-
-    // ===== Functions. =====
+    // ===== Update Functions. =====
 
     /// <summary>
     ///     Performs conversion of each stored string key in the current instance to KeyCode.
@@ -147,6 +157,32 @@ public class InputGroup
         foreach (Key k in keys)
             k.UpdateKey();
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="keyName"></param>
+    /// <param name="key"></param>
+    public void ChangeKey(string keyName, KeyCode key)
+    {
+        foreach (Key k in keys)
+            if (k.name == keyName)
+                k.ChangeKey(key);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="keyName"></param>
+    /// <param name="key"></param>
+    public void ChangeKey(string keyName, string key)
+    {
+        foreach (Key k in keys)
+            if (k.name == keyName)
+                k.ChangeKey(key);
+    }
+
+    // ===== Input Handling. =====
 
     /// <summary>
     /// 
@@ -197,7 +233,7 @@ public class InputGroup
         );
     }
 
-    // ===== Input Generators =====
+    // ===== Input Generators. =====
 
     /// <summary>
     /// 
@@ -243,33 +279,24 @@ public class InputGroup
 
 #endregion
 
+#region Key Class
+
 [Serializable]
 public class Key
 {
-    // ===== Variables. =====
+    // ===== Public Variables. =====
 
     /// <summary>
-    /// 
+    ///     The display name of the key.
     /// </summary>
     public string name;
 
-    /// <summary> Internal storage for the string name of the negative input KeyCode. </summary>
+    /// <summary> 
+    ///     Internal storage for the string name of the negative input KeyCode. 
+    /// </summary>
     [SerializeField]
     [Tooltip("The name of a KeyCode.")]
-    private string _key = "";
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public string key
-    {
-        get { return _key; }
-        set
-        {
-            keyCode = TryKeyCodeConversion(value);
-            _key = value;
-        }
-    }
+    private string key = "";
 
     /// <summary>
     ///     Storage for the KeyCode conversion of the key string.
@@ -282,13 +309,46 @@ public class Key
     /// </summary>
     public bool useKey { get; private set; }
 
-    [Tooltip("The output value returned by the key.")]
     /// <summary>
     /// 
     /// </summary>
+    [Tooltip("The output value returned by the key.")]
     public Output value = Output.Positive;
 
-    // ===== Functions. =====
+    // ===== Public Functions. =====
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public void UpdateKey()
+    {
+        keyCode = TryKeyCodeConversion(key);
+        useKey = UseKey();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="targetKey"></param>
+    public void ChangeKey(KeyCode targetKey)
+    {
+        key = targetKey.ToString();
+        keyCode = targetKey;
+        useKey = UseKey();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="targetKey"></param>
+    public void ChangeKey(string targetKey)
+    {
+        key = targetKey;
+        keyCode = TryKeyCodeConversion(targetKey);
+        useKey = UseKey();
+    }
+
+    // ===== Private Functions. =====
 
     /// <summary>
     ///     Attempts to convert a given string value to a KeyCode.
@@ -325,19 +385,21 @@ public class Key
     /// <summary>
     /// 
     /// </summary>
-    public void UpdateKey()
-    {
-        key = _key;
-        useKey = keyCode != KeyCode.None;
-    }
+    /// <returns></returns>
+    private bool UseKey() => keyCode != KeyCode.None;
 }
 
+/// <summary>
+/// 
+/// </summary>
 [Serializable]
 public enum Output
 {
     Positive = 1,
     Negative = -1
 }
+
+#endregion
 
 #region KeyFormatter Class
 
@@ -352,8 +414,6 @@ struct KeyFormatter
     // Identifies the first letter of a word OR entire word excluding the first letter.
     // Uses custom grouping to identify each match group by identifier.
     private static Regex keyCodeFormatter = new Regex(@"(?<Letter>\b(?=\w).)|(?<Word>\w+)");
-
-    // ===== Functions. =====
 
     /// <summary>
     ///     Formats a given string to be usable in a string>KeyCode parse operation.
