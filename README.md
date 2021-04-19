@@ -8,7 +8,7 @@ The core of this project comes from 3 main scripts: InputHandler, InputHandlerEd
 
 The <code>InputHandler</code> script, and its <code>Editor</code> counterpart, act as an interface between Unity and the core <code>InputComponents</code> objects, housing all Unity inspector and MonoBehaviour functionality.
 
-The <code>InputComponents<code> script stores the main bulk of the input processing, housing the <code>InputAxis</code> and <code>KeyFormatter</code> classes.
+The <code>InputComponents</code> script stores the main bulk of the input processing, housing the <code>InputAxis</code> and <code>KeyFormatter</code> classes.
 
 The <code>KeyFormatter</code> class handles string to KeyCode casting, utilising Regex formatting to alter strings to match the KeyCode naming style; removing the need for in-editor case-perfect naming. The use of KeyCodes enables portability with Unity's built-in Input class, handling keyboard-level I/O operations.
 
